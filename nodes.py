@@ -700,6 +700,7 @@ class DialogueInferenceNode:
                 "language": (DEMO_LANGUAGES, {"default": "Auto"}),
                 "pause_seconds": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 5.0, "step": 0.1, "tooltip": "Silence duration between sentences"}),
                 "merge_outputs": ("BOOLEAN", {"default": True, "tooltip": "Merge all dialogue segments into a single long audio"}),
+                "batch_size": ("INT", {"default": 4, "min": 1, "max": 32, "step": 1, "tooltip": "Number of lines to process in parallel. Larger = faster but more VRAM."}),
             },
             "optional": {
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
@@ -713,7 +714,7 @@ class DialogueInferenceNode:
     CATEGORY = "Qwen3-TTS"
     DESCRIPTION = "DialogueInference: Execute a script with multiple roles and generate continuous speech."
 
-    def generate_dialogue(self, script: str, role_bank: Dict[str, Any], model_choice: str, device: str, precision: str, language: str, pause_seconds: float, merge_outputs: bool, seed: int = 0, max_new_tokens_per_line: int = 2048) -> Tuple[Dict[str, Any]]:
+    def generate_dialogue(self, script: str, role_bank: Dict[str, Any], model_choice: str, device: str, precision: str, language: str, pause_seconds: float, merge_outputs: bool, batch_size: int, seed: int = 0, max_new_tokens_per_line: int = 2048) -> Tuple[Dict[str, Any]]:
         if not script or not role_bank:
             raise RuntimeError("Script and Role Bank are required")
 
@@ -742,11 +743,17 @@ class DialogueInferenceNode:
             if not line or ":" not in line and "：" not in line:
                 continue
             
-            # Simple parser
-            if "：" in line:
-                role_name, text = line.split("：", 1)
-            else:
+            # Robust parser: find the first occurring colon (English or Chinese)
+            pos_en = line.find(":")
+            pos_cn = line.find("：")
+            
+            if pos_en == -1 and pos_cn == -1:
+                continue
+            
+            if pos_en != -1 and (pos_cn == -1 or pos_en < pos_cn):
                 role_name, text = line.split(":", 1)
+            else:
+                role_name, text = line.split("：", 1)
             
             role_name = role_name.strip()
             text = text.strip()
@@ -771,35 +778,49 @@ class DialogueInferenceNode:
             raise RuntimeError("No valid dialogue lines found matching Role Bank.")
 
         try:
-            print(f"🎙️ [Qwen3-TTS] Running batched inference for {len(texts_to_gen)} lines...")
-            # Batch inference: text can be a list, voice_clone_prompt can be a list of items
-            wavs_list, sr = model.generate_voice_clone(
-                text=texts_to_gen,
-                language=langs_to_gen,
-                voice_clone_prompt=prompts_to_gen,
-                max_new_tokens=max_new_tokens_per_line,
-            )
-            
             results = []
-            for wav in wavs_list:
-                waveform = torch.from_numpy(wav).float()
-                # Enforce mono [1, 1, samples]
-                if waveform.ndim == 1:
-                    waveform = waveform.unsqueeze(0).unsqueeze(0)
-                elif waveform.ndim == 2:
-                    waveform = waveform.unsqueeze(0)
-                    if waveform.shape[1] > 1:
-                        waveform = torch.mean(waveform, dim=1, keepdim=True)
+            num_lines = len(texts_to_gen)
+            sr = 24000
+            
+            # Micro-matching: process in chunks to save VRAM
+            for i in range(0, num_lines, batch_size):
+                chunk_texts = texts_to_gen[i:i + batch_size]
+                chunk_prompts = prompts_to_gen[i:i + batch_size]
+                chunk_langs = langs_to_gen[i:i + batch_size]
                 
-                results.append(waveform)
+                print(f"🎙️ [Qwen3-TTS] Running batched inference for chunk {i//batch_size + 1}, lines {i+1} to {min(i+batch_size, num_lines)}...")
+                
+                wavs_list, sr = model.generate_voice_clone(
+                    text=chunk_texts,
+                    language=chunk_langs,
+                    voice_clone_prompt=chunk_prompts,
+                    max_new_tokens=max_new_tokens_per_line,
+                )
+                
+                for wav in wavs_list:
+                    waveform = torch.from_numpy(wav).float()
+                    # Enforce mono [1, 1, samples]
+                    if waveform.ndim == 1:
+                        waveform = waveform.unsqueeze(0).unsqueeze(0)
+                    elif waveform.ndim == 2:
+                        waveform = waveform.unsqueeze(0)
+                        if waveform.shape[1] > 1:
+                            waveform = torch.mean(waveform, dim=1, keepdim=True)
+                    
+                    results.append(waveform)
 
-                # Add inter-sentence pause
-                if pause_seconds > 0:
-                    silence_len = int(pause_seconds * sr)
-                    silence = torch.zeros((1, 1, silence_len))
-                    results.append(silence)
+                    # Add inter-sentence pause
+                    if pause_seconds > 0:
+                        silence_len = int(pause_seconds * sr)
+                        silence = torch.zeros((1, 1, silence_len))
+                        results.append(silence)
+                
+                # Cleanup cache after each chunk to maximize VRAM availability
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+                    
         except Exception as e:
-            raise RuntimeError(f"Dialogue generation failed during batched inference: {e}")
+            raise RuntimeError(f"Dialogue generation failed during chunked inference: {e}")
 
         if not results:
             raise RuntimeError("No dialogue lines were successfully generated.")
