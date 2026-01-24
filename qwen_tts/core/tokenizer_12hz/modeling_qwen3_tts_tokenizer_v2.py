@@ -38,6 +38,23 @@ from transformers.modeling_rope_utils import ROPE_INIT_FUNCTIONS, dynamic_rope_u
 from transformers.modeling_utils import ALL_ATTENTION_FUNCTIONS, PreTrainedModel
 from transformers.processing_utils import Unpack
 from transformers.utils import ModelOutput, auto_docstring, logging
+# Redefine auto_docstring to bypass transformers bug and handle custom_intro parameter
+def auto_docstring(custom_intro=None):
+    """
+    Decorator that handles docstring auto-generation.
+    Can be used with or without parameters.
+    """
+    def decorator(cls_or_func):
+        return cls_or_func
+
+    # If called without parentheses (as a bare decorator)
+    if custom_intro is not None and callable(custom_intro):
+        # custom_intro is actually the function/class being decorated
+        return custom_intro
+    else:
+        # Called with parentheses, return the decorator
+        return decorator
+
 from transformers.utils.deprecation import deprecate_kwarg
 from transformers.utils.generic import check_model_inputs
 
@@ -495,7 +512,7 @@ class Qwen3TTSTokenizerV2DecoderTransformerModel(Qwen3TTSTokenizerV2DecoderPreTr
         # Initialize weights and apply final processing
         self.post_init()
 
-    @check_model_inputs()
+    @check_model_inputs
     @auto_docstring
     def forward(
         self,
