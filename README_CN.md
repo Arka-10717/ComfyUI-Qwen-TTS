@@ -2,11 +2,14 @@
 
 [English](README.md) | 中文版
 
-![节点截图](example/qwen3-tts.png)
+![节点截图](example/example.png)
 
 基于阿里巴巴 Qwen 团队开源的 **Qwen3-TTS** 项目，为 ComfyUI 实现的语音合成自定义节点。
 
 ## 📋 更新日志
+
+### 2026-01-24 - Bug 修复与改进
+- **修复**: 解决了在 `transformers==4.57.0` 环境下由于装饰器用法导致的 `check_model_inputs()` TypeError。
 
 ### 2026-01-23 - 依赖兼容性与 Mac 支持
 - **修复**: 解决了与 `qwen-tts` 依赖的 `transformers` 版本冲突问题
@@ -48,6 +51,14 @@
   - `text`: 目标文本。
   - `speaker`: 从预设声音中选择（Aiden, Eric, Serena 等）。
   - `instruct`: 可选的风格指令。
+
+### 4. Qwen3-TTS 声音克隆 Prompt (`VoiceClonePromptNode`) [新增]
+从参考音频中提取并复用声音特征。
+- **能力**: 只需提取一次“Prompt 节点”，即可在多个 `VoiceCloneNode` 实例中复用，提高生成效率并保证音质一致性。
+
+### 5. Qwen3-TTS 多角色对话 (`DialogueInferenceNode`) [新增]
+支持多角色、多说话人的复杂对话合成。
+- **能力**: 在单个节点内处理多角色语音合成，非常适合有声书制作或角色扮演场景。
 
 ## 安装
 

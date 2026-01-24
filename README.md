@@ -2,11 +2,14 @@
 
 English | [中文版](README_CN.md)
 
-![Nodes Screenshot](example/qwen3-tts.png)
+![Nodes Screenshot](example/example.png)
 
 ComfyUI custom nodes for speech synthesis, voice cloning, and voice design, based on the open-source **Qwen3-TTS** project by the Alibaba Qwen team.
 
 ## 📋 Changelog
+
+### 2026-01-24 - Bug Fixes & Improvements
+- **Fixed**: Resolved `check_model_inputs()` TypeError caused by decorator usage in `transformers==4.57.0`.
 
 ### 2026-01-23 - Dependency Compatibility & Mac Support
 - **Fixed**: Resolved `transformers` version conflicts with `qwen-tts` dependency
@@ -48,6 +51,14 @@ Standard TTS using preset speakers.
   - `text`: Target text.
   - `speaker`: Selection from preset voices (Aiden, Eric, Serena, etc.).
   - `instruct`: Optional style instructions.
+
+### 4. Qwen3-TTS Voice Clone Prompt (`VoiceClonePromptNode`) [New]
+Extract and reuse voice features from reference audio.
+- **Capabilities**: Extract a "prompt item" once and use it multiple times across different `VoiceCloneNode` instances for faster and more consistent generation.
+
+### 5. Qwen3-TTS Multi-role Dialogue (`DialogueInferenceNode`) [New]
+Synthesize complex dialogues with multiple speakers.
+- **Capabilities**: Handles multi-role speech synthesis in a single node, ideal for audiobook narration or roleplay scenarios.
 
 
 ## Installation
