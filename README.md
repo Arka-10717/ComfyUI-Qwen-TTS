@@ -146,6 +146,7 @@ The `unload_model_after_generate` toggle is available on all nodes:
 ## Installation
 
 Ensure you have the required dependencies:
+
 ```bash
 pip install torch torchaudio transformers librosa accelerate
 ```
