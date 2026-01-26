@@ -165,6 +165,8 @@ def unload_cached_model():
     print(f"✅ [Qwen3-TTS] Model cache and GPU memory cleared")
 
 
+
+
 def apply_qwen3_patches(model):
     """Apply stability and compatibility patches to the model instance"""
     if model is None:
@@ -687,6 +689,7 @@ class VoiceCloneNode:
         import numpy as np
         np.random.seed(seed % (2**32))
         
+
         audio_tuple = None
         if ref_audio is not None:
             if isinstance(ref_audio, dict):
@@ -1026,9 +1029,15 @@ class DialogueInferenceNode:
             if role_name not in role_bank:
                 print(f"⚠️ [Qwen3-TTS] Role '{role_name}' not found in Role Bank, skipping line: {line[:20]}...")
                 continue
-            # role_bank[role_name] is a List[VoiceClonePromptItem] (from create_voice_clone_prompt)
-            role_prompts = role_bank[role_name]
-            current_prompt = role_prompts[0] if isinstance(role_prompts, list) else role_prompts
+            
+            # role_bank[role_name] can be a prompt list OR the new packaged dict (if loaded via RoleBank from LoadSpeaker)
+            role_data = role_bank[role_name]
+            
+            # Extract ref_text if it was passed through RoleBank
+            # (Note: RoleBankNode currently just stores the prompt, we might need a small fix there too)
+            current_prompt = role_data[0] if isinstance(role_data, list) else role_data
+            current_ref_text = ""
+            
 
             # --- AUTO-PUNCTUATION LOGIC ---
             # Replaced [pause=] with [break=] to use internal system only.
@@ -1157,3 +1166,198 @@ class DialogueInferenceNode:
                 model._unload_callback()
             
             return (audio_data,)
+
+
+class SaveVoiceNode:
+    """
+    SaveVoice Node: Persist extracted voice features to a file.
+    """
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "voice_clone_prompt": ("VOICE_CLONE_PROMPT",),
+                "filename": ("STRING", {"default": "my_custom_voice"}),
+            },
+            "optional": {
+                "audio": ("AUDIO",),
+                "ref_text": ("STRING", {"multiline": True, "default": "", "placeholder": "Reference audio text (optional, but recommended for better quality)"}),
+            }
+        }
+
+    RETURN_TYPES = ()
+    FUNCTION = "save"
+    OUTPUT_NODE = True
+    CATEGORY = "Qwen3-TTS"
+    DESCRIPTION = "SaveVoice: Save voice clone prompt features to disk for later use."
+
+    def save(self, voice_clone_prompt, filename, audio=None, ref_text=""):
+        import soundfile as sf
+        import json
+        if not filename.endswith(".qvp"):
+            filename_qvp = filename + ".qvp"
+            filename_wav = filename + ".wav"
+            filename_json = filename + ".json"
+        else:
+            filename_qvp = filename
+            filename_wav = filename.replace(".qvp", ".wav")
+            filename_json = filename.replace(".qvp", ".json")
+        
+        # Use ComfyUI models/qwen-tts/voices directory
+        output_dir = os.path.join(folder_paths.models_dir, "qwen-tts", "voices")
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # 1. Save features (Raw prompt)
+        path_qvp = os.path.join(output_dir, filename_qvp)
+        torch.save(voice_clone_prompt, path_qvp)
+        print(f"✅ [Qwen3-TTS] Voice features saved to: {path_qvp}")
+
+        # 2. Save metadata (JSON)
+        metadata = {
+            "ref_text": ref_text.strip() if ref_text else "",
+            "source": "SaveVoiceNode",
+            "version": "1.0"
+        }
+        path_json = os.path.join(output_dir, filename_json)
+        try:
+            with open(path_json, "w", encoding="utf-8") as f:
+                json.dump(metadata, f, ensure_ascii=False, indent=4)
+            print(f"✅ [Qwen3-TTS] Voice metadata saved to: {path_json}")
+        except Exception as e:
+            print(f"⚠️ [Qwen3-TTS] Failed to save metadata JSON: {e}")
+
+        # Optional: Save audio preview as reference WAV
+        if audio is not None:
+            try:
+                # audio is usually {"waveform": tensor, "sample_rate": sr}
+                waveform = audio["waveform"]
+                sr = audio["sample_rate"]
+                
+                # Convert from [batch, channels, samples] to [samples, channels]
+                if isinstance(waveform, torch.Tensor):
+                    waveform_np = waveform.cpu().numpy()
+                else:
+                    waveform_np = np.asarray(waveform)
+                
+                if waveform_np.ndim == 3: # [B, C, S] -> [S, C] (assume batch size 1)
+                    waveform_np = waveform_np[0].T
+                
+                wav_path = os.path.join(output_dir, filename_wav)
+                sf.write(wav_path, waveform_np, sr)
+                print(f"✅ [Qwen3-TTS] Reference audio (Speaker) saved to: {wav_path}")
+            except Exception as e:
+                print(f"⚠️ [Qwen3-TTS] Failed to save reference audio: {e}")
+
+        return {}
+
+
+class LoadSpeakerNode:
+    """
+    LoadSpeaker Node: Directly load a WAV/Speaker file and its associated features.
+    Part of the "Voice Design then Clone" best practice workflow.
+    """
+    @classmethod
+    def INPUT_TYPES(cls):
+        output_dir = os.path.join(folder_paths.models_dir, "qwen-tts", "voices")
+        os.makedirs(output_dir, exist_ok=True)
+        # List WAV files in the voices directory
+        files = [f for f in os.listdir(output_dir) if f.endswith((".wav", ".mp3", ".flac"))]
+        
+        return {
+            "required": {
+                "filename": (files if files else ["None"],),
+            },
+        }
+    
+    # Updated: Added ref_text (STRING) output
+    RETURN_TYPES = ("VOICE_CLONE_PROMPT", "AUDIO", "STRING")
+    RETURN_NAMES = ("voice_clone_prompt", "audio", "ref_text")
+    FUNCTION = "load_speaker"
+    CATEGORY = "Qwen3-TTS"
+    DESCRIPTION = "LoadSpeaker: Load saved WAV audio and its metadata. Fast-loads .qvp features if available."
+
+    def load_speaker(self, filename):
+        if filename == "None":
+            raise RuntimeError("No speaker files found to load.")
+            
+        voices_dir = os.path.join(folder_paths.models_dir, "qwen-tts", "voices")
+        wav_path = os.path.join(voices_dir, filename)
+        
+        # 1. Load the AUDIO for output/preview
+        import librosa
+        wav, sr = librosa.load(wav_path, sr=None)
+        waveform = torch.from_numpy(wav).unsqueeze(0).unsqueeze(0)
+        audio_preview = {"waveform": waveform, "sample_rate": sr}
+
+        # 2. Automatically load metadata and pre-computed features
+        qvp_file = os.path.splitext(filename)[0] + ".qvp"
+        qvp_path = os.path.join(voices_dir, qvp_file)
+        json_file = os.path.splitext(filename)[0] + ".json"
+        json_path = os.path.join(voices_dir, json_file)
+        
+        prompt_items = None
+        ref_text = ""
+        
+        # 2.1 Load metadata from JSON
+        import json
+        if os.path.exists(json_path):
+            try:
+                with open(json_path, "r", encoding="utf-8") as f:
+                    metadata = json.load(f)
+                    if not ref_text or not ref_text.strip():
+                        ref_text = metadata.get("ref_text", "")
+                        if ref_text:
+                            print(f"📖 [Qwen3-TTS] Loaded metadata from JSON: {json_file}")
+            except Exception as e:
+                print(f"⚠️ [Qwen3-TTS] Failed to load metadata JSON: {e}")
+
+        # 2.2 Check for pre-computed features (.qvp)
+        if os.path.exists(qvp_path):
+            try:
+                # Set weights_only=False to allow custom VoiceClonePromptItem class (PyTorch 2.6+ compatibility)
+                if hasattr(torch, 'serialization') and hasattr(torch.serialization, 'add_safe_globals'):
+                    # Optional: Could use add_safe_globals, but weights_only=False is more direct for local files
+                    data = torch.load(qvp_path, map_location="cpu", weights_only=False)
+                else:
+                    data = torch.load(qvp_path, map_location="cpu")
+                
+                # Support legacy packaged format and raw format
+                if isinstance(data, dict) and "prompt" in data:
+                    prompt_items = data["prompt"]
+                    if not ref_text or not ref_text.strip():
+                        ref_text = data.get("ref_text", "")
+                else:
+                    # Raw prompt data
+                    prompt_items = data
+                
+                print(f"🚀 [Qwen3-TTS] Fast-loaded pre-computed features from: {qvp_file}")
+            except Exception as e:
+                print(f"⚠️ [Qwen3-TTS] Failed to fast-load .qvp: {e}")
+
+        # Final Return (including the text)
+        # Note: If prompt_items is None, the downstream VoiceCloneNode will extract it using its own settings.
+        return (prompt_items, audio_preview, ref_text)
+
+
+# Register nodes
+NODE_CLASS_MAPPINGS = {
+    "VoiceDesignNode": VoiceDesignNode,
+    "VoiceCloneNode": VoiceCloneNode,
+    "CustomVoiceNode": CustomVoiceNode,
+    "VoiceClonePromptNode": VoiceClonePromptNode,
+    "RoleBankNode": RoleBankNode,
+    "DialogueInferenceNode": DialogueInferenceNode,
+    "SaveVoiceNode": SaveVoiceNode,
+    "LoadSpeakerNode": LoadSpeakerNode,
+}
+
+NODE_DISPLAY_NAME_MAPPINGS = {
+    "VoiceDesignNode": "Qwen3 Voice Design",
+    "VoiceCloneNode": "Qwen3 Voice Clone",
+    "CustomVoiceNode": "Qwen3 Custom Voice (TTS)",
+    "VoiceClonePromptNode": "Qwen3 Voice Clone Prompt",
+    "RoleBankNode": "Qwen3 Role Bank",
+    "DialogueInferenceNode": "Qwen3 Dialogue Inference",
+    "SaveVoiceNode": "Qwen3 Save Voice",
+    "LoadSpeakerNode": "Qwen3 Load Speaker (WAV)",
+}

@@ -8,6 +8,8 @@
 
 ## 📋 更新日志
 
+- **2026-01-27**：功能优化：精简 LoadSpeaker UI，修复 PyTorch 兼容性 ([update.md](doc/update.md))
+- **2026-01-26**：功能更新：新增声音持久化系统 (SaveVoice / LoadSpeaker) ([update.md](doc/update.md))
 - **2026-01-24**：添加注意力机制选择和模型内存管理功能 ([update.md](doc/update.md))
 - **2026-01-24**：为所有 TTS 节点添加生成参数 (top_p, top_k, temperature, repetition_penalty) ([update.md](doc/update.md))
 - **2026-01-23**：依赖兼容性与 Mac (MPS) 支持，新增节点：VoiceClonePromptNode, DialogueInferenceNode ([update.md](doc/update.md))
@@ -85,6 +87,15 @@
   - `merge_outputs`: 将所有对话片段合并为一段长音频。
   - `batch_size`: 并行处理的行数（越大越快，但占用更多显存）。
 - **能力**: 在单个节点内处理多角色语音合成，非常适合有声书制作或角色扮演场景。
+
+### 7. Qwen3-TTS 加载声音 (`LoadSpeakerNode`) [新增]
+加载已保存的声音特征与元数据。
+- **输入**: 选择已保存的 `.wav` 文件。
+- **能力**: 实现“一键加载”体验，自动同步加载预计算特征和参考文本。
+
+### 8. Qwen3-TTS 保存声音 (`SaveVoiceNode`) [新增]
+将克隆的声音特征及其参考文本永久保存到磁盘。
+- **能力**: 建立个性化声音库。保存后可通过 `LoadSpeakerNode` 极速调用。
 
 ## 注意力机制
 

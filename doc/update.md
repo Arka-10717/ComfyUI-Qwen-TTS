@@ -1,5 +1,16 @@
 # Update Log
 
+## 2026-01-27
+- **Optimization**: Streamlined the `LoadSpeaker` node and removed redundant parameters.
+- **Compatibility**: Fixed loading errors for local `.qvp` files when using PyTorch 2.6+.
+- **Security**: Added feature dimension validation (0.6B/1.7B) to prevent crashes from model mismatches.
+
+## 2026-01-26
+- **Persistence Upgrade**: Introduced JSON metadata management to replace old hidden text storage, making voice libraries more transparent and editable.
+- **New Nodes**: Officially added `SaveVoice` and `LoadSpeaker` persistence nodes.
+
+![新增节点截图](/doc/example2.png)
+
 ## 2026-01-24
 
 ### Added Generation Parameters

@@ -18,6 +18,8 @@ from .nodes import (
     VoiceClonePromptNode,
     RoleBankNode,
     DialogueInferenceNode,
+    SaveVoiceNode,
+    LoadSpeakerNode,
 )
 
 # Node mappings
@@ -28,6 +30,8 @@ NODE_CLASS_MAPPINGS = {
     "FB_Qwen3TTSVoiceClonePrompt": VoiceClonePromptNode,
     "FB_Qwen3TTSRoleBank": RoleBankNode,
     "FB_Qwen3TTSDialogueInference": DialogueInferenceNode,
+    "FB_Qwen3TTSSaveVoice": SaveVoiceNode,
+    "FB_Qwen3TTSLoadSpeaker": LoadSpeakerNode,
 }
 
 # Node display name mappings
@@ -38,6 +42,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "FB_Qwen3TTSVoiceClonePrompt": "🎭 Qwen3-TTS VoiceClonePrompt",
     "FB_Qwen3TTSRoleBank": "📇 Qwen3-TTS RoleBank",
     "FB_Qwen3TTSDialogueInference": "💬 Qwen3-TTS DialogueInference",
+    "FB_Qwen3TTSSaveVoice": "💾 Qwen3-TTS SaveVoice",
+    "FB_Qwen3TTSLoadSpeaker": "🎙️ Qwen3-TTS LoadSpeaker",
 }
 
 # Version information
