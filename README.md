@@ -8,6 +8,8 @@ ComfyUI custom nodes for speech synthesis, voice cloning, and voice design, base
 
 ## 📋 Changelog
 
+- **2026-01-27**: UI Optimization: Sleek LoadSpeaker UI; fixed PyTorch 2.6+ compatibility ([update.md](doc/update.md))
+- **2026-01-26**: Functional Update: New voice persistence system (SaveVoice / LoadSpeaker) ([update.md](doc/update.md))
 - **2026-01-24**: Added attention mechanism selection & model memory management features ([update.md](doc/update.md))
 - **2026-01-24**: Added generation parameters (top_p, top_k, temperature, repetition_penalty) to all TTS nodes ([update.md](doc/update.md))
 - **2026-01-23**: Dependency compatibility & Mac (MPS) support, New nodes: VoiceClonePromptNode, DialogueInferenceNode ([update.md](doc/update.md))
@@ -85,6 +87,14 @@ Synthesize complex dialogues with multiple speakers.
   - `merge_outputs`: Merge all dialogue segments into a single long audio.
   - `batch_size`: Number of lines to process in parallel (larger = faster but more VRAM).
 - **Capabilities**: Handles multi-role speech synthesis in a single node, ideal for audiobook narration or roleplay scenarios.
+
+### 7. Qwen3-TTS Load Speaker (`LoadSpeakerNode`) [New]
+Load saved voice features and metadata with zero configuration.
+- **Capabilities**: Enables a "Select & Play" experience by auto-loading pre-computed features and metadata.
+
+### 8. Qwen3-TTS Save Voice (`SaveVoiceNode`) [New]
+Persist extracted voice features and metadata to disk for future use.
+- **Capabilities**: Build a permanent voice library for reuse via `LoadSpeakerNode`.
 
 ## Attention Mechanisms
 
